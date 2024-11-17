@@ -76,6 +76,10 @@ hr {
     @apply border-t border-gray-500;
 }
 
+hr.mobile {
+    @apply md:border-t-0 border-t;
+}
+
 .container-bg {
     @apply container mx-auto max-w-screen-xl md:pt-16 p-8 text-white;
 }
