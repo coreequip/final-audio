@@ -1,0 +1,289 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+    --blue-gradient-1: #87CFF7;
+    --blue-gradient-2: #1D85BF;
+}
+
+@font-face {
+    font-family: 'Case';
+    src: url('fonts/case-bld.woff2') format('woff2');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Case';
+    src: url('fonts/case-reg.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'ibm-serif';
+    src: url('fonts/serif-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'ibm-serif';
+    src: url('fonts/serif-italic.woff2') format('woff2');
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'ibm-serif';
+    src: url('fonts/serif-700.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'ibm-serif';
+    src: url('fonts/serif-700italic.woff2') format('woff2');
+    font-weight: 700;
+    font-style: italic;
+}
+
+.gradient-headline {
+    background: linear-gradient(to right, var(--blue-gradient-1), var(--blue-gradient-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.gradient-silver {
+    background: linear-gradient(to right, #FFFFFF, #B3B3B3);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.border-gradient-vertical {
+    border-image: linear-gradient(to bottom, var(--blue-gradient-1), var(--blue-gradient-2)) 1;
+}
+
+body {
+    @apply bg-gradient-vertical font-serif min-h-screen;
+    font-size: 1.5rem;
+}
+
+hr {
+    @apply border-t border-gray-500;
+}
+
+.container-bg {
+    @apply container mx-auto max-w-screen-xl md:pt-16 p-8 text-white;
+}
+
+h1, h2 {
+    @apply gradient-headline font-bold font-display inline-block;
+}
+
+h1 {
+    font-size: 4.25rem;
+}
+
+h2 {
+    font-size: 3rem;
+}
+
+p {
+    line-height: 150%;
+}
+
+a.button {
+    @apply bg-button-blue rounded-lg text-white font-display font-normal pl-8 pr-8 pt-4 pb-4 shadow-btn inline-block;
+    font-size: 2.5rem;
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 1.25rem;
+    }
+
+    h1 {
+        font-size: 2rem;
+        line-height: 2.5rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    p {
+        line-height: 150%;
+    }
+
+    a.button {
+        font-size: 1.5rem;
+        width: 100%;
+        text-align: center;
+    }
+}
+
+.hero {
+    @apply text-left gradient-silver font-display md:pt-16 pb-32 pt-8 md:text-6xl text-3xl;
+}
+
+.hero .quote-author {
+    @apply font-serif italic text-blue md:text-3xl text-xl mt-2;
+}
+
+.hero .quote-author::before {
+    content: '— ';
+}
+
+section.product {
+    @apply md:border border-gray-500 rounded-xl border-0 md:p-12 p-0 md:pt-14 md:mt-20 mt-8 md:mb-40 md:border-t-0 relative;
+}
+
+section.product label {
+    @apply font-display gradient-silver md:mb-0 mb-4 inline-block;
+    font-size: 2rem;
+    line-height: 2.5rem;
+}
+
+@media (min-width: 768px) {
+    section.product label {
+        @apply font-display gradient-silver absolute flex -left-px -right-px -top-10;
+        font-size: 3.25rem;
+        line-height: 4.75rem;
+    }
+
+    section.product label::before, section.product label::after {
+        @apply relative block w-10 border-gray-500 border-0 border-t top-10;
+        content: '';
+    }
+
+    section.product label::before {
+        @apply mr-2 border-l rounded-tl-xl;
+    }
+
+    section.product label::after {
+        @apply ml-2 border-r rounded-tr-xl flex-grow;
+    }
+}
+
+section.product > p {
+    @apply font-serif md:text-2xl text-xl;
+    line-height: 150%;
+}
+
+.prices {
+    @apply flex justify-between items-center mt-16 md:flex-row flex-col;
+}
+
+.price-box {
+    @apply border-gradient-vertical border-2 rounded-lg md:w-1/4 w-full mb-4 md:mb-0 text-center p-6 pb-10 relative;
+    --border-radius: 8px;
+    --border-width: 2px;
+    clip-path: inset(0 round var(--border-radius));
+}
+
+.price-box::before,
+.price-box::after {
+    content: "";
+    position: absolute;
+    border: var(--border-width) solid;
+    left: calc(-1 * var(--border-width));
+    right: calc(-1 * var(--border-width));
+    height: var(--border-radius);
+}
+
+.price-box::before {
+    border-color: var(--blue-gradient-1);
+    border-bottom-width: 0;
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    top: calc(-1 * var(--border-width));
+}
+
+.price-box::after {
+    border-color: var(--blue-gradient-2);
+    border-top-width: 0;
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+    bottom: calc(-1 * var(--border-width));
+}
+
+.price-box h3 {
+    @apply font-serif italic;
+    font-size: 2rem;
+}
+
+.price-box p {
+    @apply text-light-blue font-bold font-display text-5xl mt-6;
+}
+
+.clients {
+    @apply flex flex-col mt-20;
+}
+
+.clients .client-logos {
+    @apply flex flex-wrap justify-around w-full pt-12;
+}
+
+.clients .client-logos svg {
+    @apply ml-3 mr-3 mb-16 md:w-[232px] w-5/12;
+
+}
+.clients h2 {
+    @apply gradient-silver ml-auto mr-auto;
+}
+
+.about {
+    @apply mt-20;
+}
+.about p {
+    @apply font-serif mt-8;
+}
+
+@media (max-width: 768px) {
+    .img-about-me {
+        width: 200%;
+        max-width: none;
+        margin-left: -100%;
+        object-position: right;
+        object-fit: cover;
+    }
+}
+
+.imprint {
+    @apply md:bg-black p-6 rounded-lg shadow-xl max-w-screen-lg h-screen w-full relative;
+    font-size: 1rem;
+
+}
+.imprint h1,.imprint h2,.imprint h3 {
+    @apply font-serif;
+}
+
+.imprint h1 {
+    @apply mt-8 mb-4 inline-block gradient-silver;
+    font-size: 2.5rem;
+}
+
+.imprint h2 {
+    @apply mt-8 mb-4 block text-white;
+    font-size: 2rem;
+}
+
+.imprint h3 {
+    @apply mt-8 mb-2;
+    font-size: 1.5rem;
+}
+
+.imprint p {
+    @apply mt-4;
+}
+
+.imprint .imprint-content {
+    @apply overflow-y-scroll h-full absolute top-0 right-0 bottom-0 left-0 p-6;
+}
+.imprint .popup-close {
+    @apply absolute top-2 right-8 cursor-pointer text-white hover:text-gray-500 z-50 text-2xl w-8 h-8 bg-opacity-80 bg-black text-center;
+}
