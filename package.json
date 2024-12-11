@@ -4,6 +4,6 @@
     "release": "npx tailwindcss -i ./src/style.css -o ./style.css --minify"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.14"
+    "tailwindcss": "^3.4.16"
   }
 }

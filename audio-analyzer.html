@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Audio Analyzer</title>
+        <style>
+            body {
+                background-color: #1a1a1a;
+                color: #ffffff;
+                font-family: Arial, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+                padding: 20px;
+            }
+
+            #dropzone {
+                width: 256px;
+                height: 256px;
+                border: 3px dashed #666;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: border-color 0.3s;
+            }
+
+            #dropzone.dragover {
+                border-color: #4caf50;
+            }
+
+            canvas {
+                background-color: #2d2d2d;
+                border: 1px solid #666;
+            }
+
+            textarea {
+                width: 100%;
+                max-width: 600px;
+                height: 100px;
+                background-color: #2d2d2d;
+                color: #ffffff;
+                border: 1px solid #666;
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="dropzone">drop here</div>
+        <canvas id="visualizer" width="256" height="256"></canvas>
+        <textarea id="output" readonly></textarea>
+
+        <script>
+            const dropzone = document.getElementById("dropzone");
+            const output = document.getElementById("output");
+            const canvas = document.getElementById("visualizer");
+            const ctx = canvas.getContext("2d");
+
+            ctx.fillStyle = "#2d2d2d";
+            ctx.fillRect(0, 0, 256, 256);
+
+            function drawVisualization(values) {
+                ctx.fillStyle = "#2d2d2d";
+                ctx.fillRect(0, 0, 256, 256);
+
+                ctx.strokeStyle = "#4CAF50";
+                ctx.lineWidth = 1;
+
+                values.forEach((value, index) => {
+                    const height = value;
+                    const yStart = 128 - height / 2;
+                    const yEnd = 128 + height / 2;
+
+                    ctx.beginPath();
+                    ctx.moveTo(index, yStart);
+                    ctx.lineTo(index, yEnd);
+                    ctx.stroke();
+                });
+            }
+
+            dropzone.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                dropzone.classList.add("dragover");
+            });
+
+            dropzone.addEventListener("dragleave", () => {
+                dropzone.classList.remove("dragover");
+            });
+
+            dropzone.addEventListener("drop", async (e) => {
+                e.preventDefault();
+                dropzone.classList.remove("dragover");
+
+                const file = e.dataTransfer.files[0];
+                if (!file.type.startsWith("audio/")) {
+                    alert("Bitte nur Audio-Dateien droppen!");
+                    return;
+                }
+
+                const arrayBuffer = await file.arrayBuffer();
+                const audioContext = new AudioContext();
+                const audioBuffer =
+                    await audioContext.decodeAudioData(arrayBuffer);
+
+                const channelData = audioBuffer.getChannelData(0);
+
+                const samplesPerGroup = Math.ceil(channelData.length / 256);
+                const result = new Float32Array(256);
+
+                for (let i = 0; i < 256; i++) {
+                    const start = i * samplesPerGroup;
+                    const end = Math.min(
+                        start + samplesPerGroup,
+                        channelData.length,
+                    );
+                    let sum = 0;
+
+                    for (let j = start; j < end; j++) {
+                        sum += Math.abs(channelData[j]);
+                    }
+
+                    result[i] = sum / (end - start);
+                }
+
+                const max = Math.max(...result);
+                const scaled = result.map((x) => Math.round((x / max) * 255));
+
+                drawVisualization(scaled);
+
+                const uint8Array = new Uint8Array(scaled);
+                const base64 = btoa(
+                    String.fromCharCode.apply(null, uint8Array),
+                );
+
+                output.value = `data-length="${Math.ceil(audioBuffer.duration)}" data-bits="${base64}"`;
+            });
+        </script>
+    </body>
+</html>
