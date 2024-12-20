@@ -1,45 +1,47 @@
 (function() {
-    const $ = document.querySelector.bind(document)
-    const $$ = document.querySelectorAll.bind(document)
+    const $ = document.querySelector.bind(document);
+    const $$ = document.querySelectorAll.bind(document);
 
     const renderWaveform = (svg, preview) => {
-        const svgRect = svg.getBoundingClientRect()
-        const width = Math.floor(svgRect.width)
-        const height = svgRect.height
-        const step = preview.length * 3 / width
-        const heightScale = svgRect.height / 256
-        console.log(heightScale, step)
-        svg.innerHTML = ''
-        let lastX = -1
+        const svgRect = svg.getBoundingClientRect();
+        const width = Math.floor(svgRect.width);
+        const height = svgRect.height;
+        const step = preview.length * 3 / width;
+        const heightScale = svgRect.height / 256;
+        console.log(heightScale, step);
+        svg.innerHTML = '';
+        let lastX = -1;
         for (const [idx, value] of preview.entries()) {
-            const x = Math.floor(idx / step)
-            if (x === lastX) continue
-            lastX = x
-            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-            rect.setAttribute('x', x * 3)
-            rect.setAttribute('y', height / 2 - value * heightScale / 2)
-            rect.setAttribute('width', 2)
-            rect.setAttribute('height', Math.max(value * heightScale, 1))
-            rect.setAttribute('fill', '#1D85BF')
-            svg.appendChild(rect)
+            const x = Math.floor(idx / step);
+            if (x === lastX) continue;
+            lastX = x;
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', x * 3);
+            rect.setAttribute('y', height / 2 - value * heightScale / 2);
+            rect.setAttribute('width', 2);
+            rect.setAttribute('height', Math.max(value * heightScale, 1));
+            rect.setAttribute('fill', '#1D85BF');
+            svg.appendChild(rect);
         }
-    }
-    
-    let lastTimeout = 0
+    };
+
+    let lastTimeout = 0;
     window.addEventListener('resize', () => {
-        clearTimeout(lastTimeout)
+        clearTimeout(lastTimeout);
         lastTimeout = setTimeout(() => {
             $$('section[data-sample]').forEach(section => {
-                renderWaveform(section.querySelector('svg'), getPreview(section))
-            })
-        }, 500)
-    })
+                renderWaveform(section.querySelector('svg'), getPreview(section));
+            });
+        }, 500);
+    });
 
     const getPreview = section => Uint8Array.from(
         atob(section.dataset.bits ?? '')
             .split('')
             .map(c => c.charCodeAt(0))
-    )
+    );
+
+    const audio = new Audio()
 
     $$('section[data-sample]').forEach((section, idx, sectionMap) => {
         const sampleName = section.dataset.sample ?? '!EmptySampleName!'
@@ -59,8 +61,8 @@
                 <p></p>
                 <div class="controls">
                     <div class="buttons">
-                        <button class="paused">Before</button>
-                        <button class="pause">After</button>
+                        <button class="before paused">Before</button>
+                        <button class="after paused">After</button>
                     </div>
                     <div class="waveform"><svg></svg></div>
                 </div>
@@ -75,5 +77,34 @@
         const svgRect = svg.getBoundingClientRect()
         console.log(svgRect.width, svgRect.height)
         renderWaveform(svg, preview)
-    })
-})()
+
+        const buttons = section.querySelectorAll('.buttons button')
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                const isPlaying = button.classList.contains('playing')
+                const suffix = button.classList.contains('before') ? 'before' : 'after'
+                const audioSrc = `audio/${sampleName}-${suffix}.m4a`
+
+                $$('section[data-sample] button').forEach(btn => {
+                    btn.classList.remove('playing')
+                    btn.classList.add('paused')
+                });
+                if (isPlaying) {
+                    audio.pause()
+                } else {
+                    audio.src = audioSrc
+                    audio.play()
+                    button.classList.add('playing')
+                    button.classList.remove('paused')
+                }
+            });
+        });
+
+        audio.addEventListener('ended', () => {
+            buttons.forEach(button => {
+                button.classList.remove('playing');
+                button.classList.add('paused');
+            });
+        });
+    });
+})();
