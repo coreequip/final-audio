@@ -8,7 +8,6 @@
         const height = svgRect.height;
         const step = preview.length * 3 / width;
         const heightScale = svgRect.height / 256;
-        console.log(heightScale, step);
         svg.innerHTML = '';
         let lastX = -1;
         for (const [idx, value] of preview.entries()) {
@@ -51,8 +50,6 @@
         const description = section.textContent.trim()
         const last = idx + 1 === sectionMap.length
 
-        console.log(last, sampleName, duration, preview.length, description)
-
         section.className = 'player'
         section.innerHTML = `
             <div class="poster"><img src="" alt="" /></div>
@@ -75,36 +72,50 @@
         section.querySelector('p').textContent = description
         const svg = section.querySelector('svg')
         const svgRect = svg.getBoundingClientRect()
-        console.log(svgRect.width, svgRect.height)
         renderWaveform(svg, preview)
 
         const buttons = section.querySelectorAll('.buttons button')
         buttons.forEach(button => {
+            const suffix = button.classList.contains('before') ? 'before' : 'after'
+            button.id = `${sampleName}-${suffix}`
             button.addEventListener('click', () => {
                 const isPlaying = button.classList.contains('playing')
-                const suffix = button.classList.contains('before') ? 'before' : 'after'
                 const audioSrc = `audio/${sampleName}-${suffix}.m4a`
+                const playingButtonId = audio.dataset.buttonId ?? ''
 
-                $$('section[data-sample] button').forEach(btn => {
-                    btn.classList.remove('playing')
-                    btn.classList.add('paused')
-                });
-                if (isPlaying) {
+                if (!audio.paused) {
                     audio.pause()
-                } else {
-                    audio.src = audioSrc
-                    audio.play()
-                    button.classList.add('playing')
-                    button.classList.remove('paused')
+                    if (playingButtonId === button.id) {
+                        return
+                    }
+                    pauseAudio()
                 }
+                audio.src = audioSrc
+                audio.currentTime = parseFloat(button.dataset.position ?? 0)
+                audio.dataset.buttonId = button.id
+                audio.play()
             });
         });
 
-        audio.addEventListener('ended', () => {
-            buttons.forEach(button => {
-                button.classList.remove('playing');
-                button.classList.add('paused');
-            });
-        });
     });
+
+    audio.addEventListener('ended', () => {
+        const $button = document.getElementById(audio.dataset.buttonId)
+        $button.classList.remove('playing')
+        $button.classList.add('paused');
+        $button.dataset.position = '0'
+        delete audio.dataset.buttonId
+    })
+    audio.addEventListener('play', (evt) => {
+        const $button = document.getElementById(audio.dataset.buttonId)
+        $button.classList.add('playing')
+        $button.classList.remove('paused')
+    })
+    const pauseAudio = () => {
+        const $button = document.getElementById(audio.dataset.buttonId)
+        $button.classList.remove('playing')
+        $button.classList.add('paused');
+        $button.dataset.position = audio.currentTime.toFixed(2)
+    }
+    audio.addEventListener('pause', pauseAudio)
 })();
