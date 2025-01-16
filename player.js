@@ -1,46 +1,89 @@
 (function() {
-    const $ = document.querySelector.bind(document);
-    const $$ = document.querySelectorAll.bind(document);
+    const $ = document.querySelector.bind(document)
+    const $$ = document.querySelectorAll.bind(document)
 
-    const renderWaveform = (svg, preview) => {
-        const svgRect = svg.getBoundingClientRect();
-        const width = Math.floor(svgRect.width);
-        const height = svgRect.height;
-        const step = preview.length * 3 / width;
-        const heightScale = svgRect.height / 256;
-        svg.innerHTML = '';
-        let lastX = -1;
+    const renderWaveform = (svg, preview, suffix) => {
+        const svgRect = svg.getBoundingClientRect()
+        const width = Math.floor(svgRect.width)
+        const height = svgRect.height
+        const step = preview.length * 3 / width
+        const heightScale = svgRect.height / 256
+        svg.id = `waveform-${suffix}`
+        svg.viewBox.baseVal.width = width
+        svg.viewBox.baseVal.height = height
+        svg.innerHTML = `
+            <defs>
+                <symbol id="waveform-symbol-${suffix}" preserveAspectRatio="none"></symbol>
+                <clipPath id="played-clip-${suffix}">
+                    <rect x="0" y="0" width="100%" height="100%"/>
+                </clipPath>
+                <clipPath id="unplayed-clip-${suffix}">
+                    <rect x="0" y="0" width="100%" height="100%"/>
+                </clipPath>
+            </defs>
+            <g class="waveform-group">
+                <use href="#waveform-symbol-${suffix}" clip-path="url(#played-clip-${suffix})" class="waveform-played"/>
+                <use href="#waveform-symbol-${suffix}" clip-path="url(#unplayed-clip-${suffix})" class="waveform-unplayed"/>
+            </g>
+            <g id="playhead-${suffix}" transform="translate(-1,0)">
+                <line x1="0" y1="0"
+                      x2="0" y2="100%"
+                      stroke="white"
+                      stroke-width="1"/>
+            </g>
+        `
+        const $container = svg.querySelector('symbol')
+        let lastX = -1
         for (const [idx, value] of preview.entries()) {
-            const x = Math.floor(idx / step);
-            if (x === lastX) continue;
-            lastX = x;
-            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            rect.setAttribute('x', x * 3);
-            rect.setAttribute('y', height / 2 - value * heightScale / 2);
-            rect.setAttribute('width', 2);
-            rect.setAttribute('height', Math.max(value * heightScale, 1));
-            rect.setAttribute('fill', '#1D85BF');
-            svg.appendChild(rect);
+            const x = Math.floor(idx / step)
+            if (x === lastX) continue
+            lastX = x
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+            rect.setAttribute('x', x * 3)
+            rect.setAttribute('y', height / 2 - value * heightScale / 2)
+            rect.setAttribute('width', 2)
+            rect.setAttribute('height', Math.max(value * heightScale, 1))
+            rect.setAttribute('fill', '#1D85BF')
+            $container.appendChild(rect)
         }
-    };
+    }
 
-    let lastTimeout = 0;
+    let lastTimeout = 0
     window.addEventListener('resize', () => {
-        clearTimeout(lastTimeout);
+        clearTimeout(lastTimeout)
         lastTimeout = setTimeout(() => {
             $$('section[data-sample]').forEach(section => {
-                renderWaveform(section.querySelector('svg'), getPreview(section));
-            });
-        }, 500);
-    });
+                renderWaveform(section.querySelector('svg'), getPreview(section))
+            })
+        }, 500)
+    })
 
     const getPreview = section => Uint8Array.from(
         atob(section.dataset.bits ?? '')
             .split('')
             .map(c => c.charCodeAt(0))
-    );
+    )
 
     const audio = new Audio()
+    const updateWaveform = () => {
+        const suffix = (audio.dataset.buttonId ?? '').split('-')[0]
+        const svgContainer = $(`#waveform-${suffix}`)
+        const svgWidth = svgContainer?.viewBox.baseVal.width;
+        let progress = 1.1
+        if (audio.paused) {
+            setTimeout(updateWaveform, 500)
+            if (!audio.dataset.buttonId) return
+        } else {
+            progress = audio.currentTime / audio.duration;
+            setTimeout(updateWaveform, 16)
+            if (isNaN(progress)) return
+        }
+        const splitPoint = svgWidth * progress;
+        $(`#played-clip-${suffix} rect`).setAttribute('width', splitPoint)
+        $(`#unplayed-clip-${suffix} rect`).setAttribute('x', splitPoint)
+        $(`#playhead-${suffix}`).setAttribute('transform', `translate(${splitPoint},0)`)
+    }
+    setTimeout(updateWaveform, 500)
 
     $$('section[data-sample]').forEach((section, idx, sectionMap) => {
         const sampleName = section.dataset.sample ?? '!EmptySampleName!'
@@ -70,16 +113,23 @@
         img.alt = `"${title}" poster`
         section.querySelector('h3').textContent = title
         section.querySelector('p').textContent = description
+
         const svg = section.querySelector('svg')
-        const svgRect = svg.getBoundingClientRect()
-        renderWaveform(svg, preview)
+        renderWaveform(svg, preview, sampleName)
+
+        svg.addEventListener('click', (e) => {
+            e.preventDefault()
+            if (audio.paused) return
+            const rect = svg.getBoundingClientRect()
+            const clickPosition = (e.clientX - rect.left) / rect.width
+            audio.currentTime = audio.duration * clickPosition;
+        })
 
         const buttons = section.querySelectorAll('.buttons button')
         buttons.forEach(button => {
             const suffix = button.classList.contains('before') ? 'before' : 'after'
             button.id = `${sampleName}-${suffix}`
             button.addEventListener('click', () => {
-                const isPlaying = button.classList.contains('playing')
                 const audioSrc = `audio/${sampleName}-${suffix}.m4a`
                 const playingButtonId = audio.dataset.buttonId ?? ''
 
@@ -94,16 +144,16 @@
                 audio.currentTime = parseFloat(button.dataset.position ?? 0)
                 audio.dataset.buttonId = button.id
                 audio.play()
-            });
-        });
+            })
+        })
 
-    });
+    })
 
-    audio.addEventListener('ended', () => {
+    audio.addEventListener('ended', (e) => {
         const $button = document.getElementById(audio.dataset.buttonId)
-        $button.classList.remove('playing')
-        $button.classList.add('paused');
-        $button.dataset.position = '0'
+        console.log('ended', e, audio, $button, e.currentTarget.dataset)
+        updateWaveform()
+        delete $button.dataset.position
         delete audio.dataset.buttonId
     })
     audio.addEventListener('play', (evt) => {
@@ -112,10 +162,12 @@
         $button.classList.remove('paused')
     })
     const pauseAudio = () => {
+        console.debug('pauseAudio', audio.dataset.buttonId)
+        if (!audio.dataset.buttonId) return
         const $button = document.getElementById(audio.dataset.buttonId)
         $button.classList.remove('playing')
-        $button.classList.add('paused');
+        $button.classList.add('paused')
         $button.dataset.position = audio.currentTime.toFixed(2)
     }
     audio.addEventListener('pause', pauseAudio)
-})();
+})()
