@@ -351,12 +351,18 @@ section.player .controls button {
 }
 
 section.player .controls .waveform {
-    @apply md:ml-20 flex-grow min-h-28;
+    @apply md:ml-20 flex-grow min-h-28 relative;
 }
 
 section.player .controls .waveform svg {
     @apply w-full h-full;
 }
+
+section.player .controls .waveform::after {
+    @apply absolute -bottom-4 right-0 text-white text-sm font-display;
+    content: attr(data-time);
+}
+
 .waveform svg .waveform-unplayed {
     @apply opacity-30;
 }

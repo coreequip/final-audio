@@ -1,4 +1,4 @@
-(function() {
+(function () {
     const $ = document.querySelector.bind(document)
     const $$ = document.querySelectorAll.bind(document)
 
@@ -82,8 +82,12 @@
         $(`#played-clip-${suffix} rect`).setAttribute('width', splitPoint)
         $(`#unplayed-clip-${suffix} rect`).setAttribute('x', splitPoint)
         $(`#playhead-${suffix}`).setAttribute('transform', `translate(${splitPoint},0)`)
+        $(`#waveform-wrapper-${suffix}`).dataset.time = (!audio.paused ? `${formatTime(Math.ceil(audio.currentTime))} / ` : '')
+            + `${formatTime(Math.ceil(audio.duration))}`
     }
     setTimeout(updateWaveform, 500)
+
+    const formatTime = (time) => `${time / 60 | 0}:${('0' + time % 60).slice(-2)}`
 
     $$('section[data-sample]').forEach((section, idx, sectionMap) => {
         const sampleName = section.dataset.sample ?? '!EmptySampleName!'
@@ -104,7 +108,7 @@
                         <button class="before paused">Before</button>
                         <button class="after paused">After</button>
                     </div>
-                    <div class="waveform"><svg></svg></div>
+                    <div class="waveform" id="waveform-wrapper-${sampleName}"><svg></svg></div>
                 </div>
             </div>
         `
@@ -113,9 +117,11 @@
         img.alt = `"${title}" poster`
         section.querySelector('h3').textContent = title
         section.querySelector('p').textContent = description
+        section.querySelector('.waveform').dataset.time = formatTime(duration)
 
         const svg = section.querySelector('svg')
         renderWaveform(svg, preview, sampleName)
+
 
         svg.addEventListener('click', (e) => {
             e.preventDefault()
@@ -164,6 +170,7 @@
     const pauseAudio = () => {
         console.debug('pauseAudio', audio.dataset.buttonId)
         if (!audio.dataset.buttonId) return
+        updateWaveform()
         const $button = document.getElementById(audio.dataset.buttonId)
         $button.classList.remove('playing')
         $button.classList.add('paused')
