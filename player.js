@@ -177,4 +177,38 @@
         $button.dataset.position = audio.currentTime.toFixed(2)
     }
     audio.addEventListener('pause', pauseAudio)
+
+
+    $$('.reference-videos section[data-reference]').forEach(($section, idx, sectionMap) => {
+        const refId = $section.dataset.reference ?? '!EmptyReferenceId!'
+        const refTitle = $section.innerText.trim()
+        $section.className = 'video-container group'
+        $section.innerHTML = `
+            <video class="video" poster="video/reference${refId}.webp">
+                <source src="video/reference${refId}.mp4" type="video/mp4">
+            </video>
+            <div class="play-button"></div>
+            <div class="title">${refTitle}</div>
+        `
+        const $video = $section.querySelector('.video')
+        const $playButton = $section.querySelector('.play-button')
+
+        const togglePlay = ev => {
+            if (ev.type === 'touchend' && $video.paused) return
+            ev.preventDefault()
+            $video.paused ? $video.play() : $video.pause()
+        }
+        $section.addEventListener('touchend', togglePlay)
+        $section.addEventListener('click', togglePlay)
+
+        const videoToggle = () => {
+            $section.classList.toggle('playing', !$video.paused)
+            $playButton.classList.toggle('pause-button', !$video.paused)
+            $video.controls = !$video.paused
+        }
+        $video.addEventListener('pause', videoToggle)
+        $video.addEventListener('ended', videoToggle)
+        $video.addEventListener('play', videoToggle)
+    })
+
 })()
