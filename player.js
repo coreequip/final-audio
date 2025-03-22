@@ -79,9 +79,9 @@
             if (isNaN(progress)) return
         }
         const splitPoint = svgWidth * progress;
-        $(`#played-clip-${suffix} rect`).setAttribute('width', splitPoint)
-        $(`#unplayed-clip-${suffix} rect`).setAttribute('x', splitPoint)
-        $(`#playhead-${suffix}`).setAttribute('transform', `translate(${splitPoint},0)`)
+        $(`#played-clip-${suffix} rect`)?.setAttribute('width', splitPoint)
+        $(`#unplayed-clip-${suffix} rect`)?.setAttribute('x', splitPoint)
+        $(`#playhead-${suffix}`)?.setAttribute('transform', `translate(${splitPoint},0)`)
         $(`#waveform-wrapper-${suffix}`).dataset.time = (!audio.paused ? `${formatTime(Math.ceil(audio.currentTime))} / ` : '')
             + `${formatTime(Math.ceil(audio.duration))}`
     }
