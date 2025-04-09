@@ -400,29 +400,6 @@ section.player .controls button.playing::before {
     @apply w-full h-auto cursor-pointer;
 }
 
-.play-button {
-    @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full pointer-events-none md:opacity-0 md:group-hover:opacity-100 opacity-100;
-    background-color: rgba(0, 0, 0, 0.5);
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>');
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 40px;
-}
-
-.video-container.playing .pause-button {
-    @apply opacity-0;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>');
-}
-
-@media (min-width: 768px) {
-    .video-container.playing .play-button {
-        opacity: 0;
-    }
-
-    .video-container.playing:hover .play-button {
-        opacity: 1;
-    }
-}
 .video-container .title {
     @apply flex items-center justify-center italic mt-2 text-xl;
 }
